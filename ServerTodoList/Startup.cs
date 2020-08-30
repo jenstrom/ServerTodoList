@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ServerTodoList.Data;
 
 namespace ServerTodoList
 {
@@ -25,6 +27,11 @@ namespace ServerTodoList
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddDbContext<TodoContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddCors(options => {
+                options.AddDefaultPolicy(builder => 
+                builder.WithOrigins(Configuration.GetValue<string>("AllowedHosts")).AllowAnyHeader().AllowAnyMethod());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,8 +43,7 @@ namespace ServerTodoList
             }
 
             app.UseRouting();
-
-            app.UseAuthorization();
+            app.UseCors();
 
             app.UseEndpoints(endpoints =>
             {
